@@ -1,0 +1,851 @@
+* 学习elisp笔记
+** basics
+
+*** Printing
+(message "My list is: %S" (list 8 2 3))  ; %S is for any lisp expression
+*** Arithmetic Functions
+(% 7 4)       ;    ->  3 (Remainder)
+(expt 2 3)    ;    -> 8
+;; float must have a dot followed by a zero
+(integerp 3.) ; returns t
+(floatp 3.) ; returns nil
+(floatp 3.0) ; returns t
+(string-to-number "3")
+(number-to-string 3)
+*** True and False
+In elisp, the symbol nil is false, anything else is considered true. So, 
+0 is true, and empty string "" is also true. Also, nil is equivalent to 
+the empty list (), so () is also false.
+; all the following are false. They all evaluate to “nil”
+(if nil "yes" "no") ; ⇒ "no"
+(if () "yes" "no") ; ⇒ "no"
+(if '() "yes" "no") ; ⇒ "no"
+(if (list) "yes" "no") ; ⇒ "no", because (list) eval to a empty list, same as ()
+By convention, the symbol t is used for true.
+(if t "yes" "no") ; ⇒ "yes"
+(if 0 "yes" "no") ; ⇒ "yes"
+(if "" "yes" "no") ; ⇒ "yes"
+(if [] "yes" "no") ; ⇒ "yes". The [] is vector of 0 elements
+
+(and t nil) ; ⇒ nil
+(or t nil) ; ⇒ t
+There is no “boolean datatype” in elisp. Just remember that nil and empty list () 
+are false, anything else is true.
+*** Comparison Functions
+Comparing numbers:
+(/= 3 4) ; not equal. ⇒ t
+Comparing strings:
+(string-equal "this" "this") ; ⇒ t. Case matters
+For generic equality test, use equal. It test if two variable/value/symbol have the 
+same datatype and value.
+;; testing if two values have the same datatype and value.
+(equal "abc" "abc") ; ⇒ t
+(equal 3 3) ; ⇒ t
+(equal 3.0 3.0) ; ⇒ t
+(equal 3 3.0) ; ⇒ nil. Because datatype doesn't match.
+
+;; testing equality of lists
+(equal '(3 4 5) '(3 4 5))  ; ⇒ t
+(equal '(3 4 5) '(3 4 "5")) ; ⇒ nil
+
+;; testing equality of symbols
+(equal 'abc 'abc) ; ⇒ t
+There's also the function eq, but don't use it unless you know what you are doing.
+
+To test for inequality, the /= is for numbers only, and doesn't work for strings 
+and other lisp data. Use not to negate your equality test, like this:
+(not (= 3 4)) ; ⇒ t
+(/= 3 4) ; ⇒ t. “/=” is for comparing numbers only
+
+(not (equal 3 4)) ; ⇒ t. General way to test inequality.
+*** Global and Local Variables
+setq is used to set variables. Variables need not be declared, and is global.
+(setq x 1) ; assign 1 to x
+(setq a 3 b 2 c 7) ; assign 3 to a, 2 to b, 7 to c
+To define local variables, use let. The form is: (let (‹var1› ‹var2› …) ‹body›) 
+where ‹body› is (one or more) lisp expressions. The body's last expression's 
+value is returned.
+(let (a b)
+ (setq a 3)
+ (setq b 4)
+ (+ a b)
+) ; returns 7
+
+Another form of let is this: (let ((‹var1› ‹val1›) (‹var2› ‹val2›) …) ‹body›). 
+Example:
+(let ((a 3) (b 4))
+ (+ a b)
+) ; returns 7
+This form lets you set values to variable without using many setq in the 
+body. This form is convenient if you just have a few simple local vars with
+ known values.
+
+*** If Then Else
+The form for if statement is: (if ‹test› ‹body›).
+
+If you want a “else” part, the form is (if ‹test› ‹true body› ‹false body›).
+
+Examples:
+
+(if (< 3 2) (message "yes") )
+(if (< 3 2) (message "yes") (message "no") )
+
+(if nil (message "yes") (message "no") )  ; prints no
+
+If you do not need a “else” part, you should use the function when instead,
+because it is more clear. The form is this: (when ‹test› ‹expr1› ‹expr2› …). 
+Its meaning is the same as (if ‹test› (progn ‹expr1› ‹expr2› …)).
+
+*** A Block of Expression
+Sometimes you need to group several expressions together as one single 
+expression. This can be done with progn. For example, this code:
+
+(progn (message "hi") (message "lo"))
+
+is equivalent to
+
+(message "hi") (message "lo")
+
+The purpose of (progn …) is similar to a block of code {…} in C-like languages. 
+It is used to group together a bunch of expressions into one single 
+parenthesized expression. Most of the time it's used inside “if”. 
+For example:
+
+(if something
+    (progn ; true
+    …
+    )
+    (progn ; else
+    …
+    )
+)
+
+*** Iteration
+The following code shows a loop using the while function. The form is:
+(while ‹test› ‹body›), where ‹body› is one or more lisp expressions.
+
+(setq x 0)
+
+(while (< x 4)
+  (print (format "yay %d" x))
+  (setq x (1+ x)))
+
+(setq x 1)
+(while (< x 3)
+  (print (format "count %d" x))
+  (setq x (1+ x)))
+
+In the following sample code, it inserts Unicode chars 32 to 126. First, 
+it sets a local variable x to 32. Then it starts a while loop, insert the 
+corresponding Unicode char (in current buffer), then increase x by 1.
+
+(let ((x 32))
+  (while (< x 127)
+    (ucs-insert x)
+    (setq x (+ x 1))))
+
+Note: There is no “for” loop construct.
+*** Sequence, List, Vector, Array
+*** Defining a Function
+Basic function definition is of the form: 
+(defun ‹function name› (‹param1› ‹param2› …) "‹doc string›" ‹body›) . 
+Example:
+
+(defun myFunction () "testing" (message "hello world"))
+
+When a function is called, the last expression in the function's 
+definition body is returned. (You do not have to write “Return …”.)
+
+This function can be called in other places in a elisp program but 
+the function won't be available when user types 【Alt+x】.
+**** Defining Commands
+To make a function available for interactive use, add the (interactive) right 
+after the doc string.
+
+The following is a basic function definition for interactive use. The function 
+takes no argument. Evaluate the following code. Then, you can call it 
+by 【Alt+x yay】
+(defun ho ()
+  "Insert Yay! at cursor position."
+  (interactive)
+  (message "hello world"))
+
+(defun yay ()
+  "Insert “Yay!”at cursor position."
+  (interactive)
+  (insert "Yay!"))
+
+The following is a basic function definition, taking one argument from
+universal-argument 【Ctrl+u】. You can call it by typing 
+【Ctrl+u 7 Alt+x myFunction】.
+
+(defun myFunction (myArg)
+  "Prints the argument"
+  (interactive "p")
+  (message "Your argument is: %d" myArg))
+
+The following is a basic function definition taking region as arg. Note 
+the (interactive "r"). The "r" is a code that tells emacs that the function
+will receive the buffer's begin/end text selection positions as its argument.
+
+(defun myFunction (myStart myEnd)
+  "Prints region start and end positions"
+  (interactive "r")
+  (message "Region begin at: %d, end at: %d" myStart myEnd)
+)
+
+In summary:
+
+The (interactive …) clause is a way to make your function interactively callable, 
+and a way to fill out your function's parameters when used interactively.
+A function with the (interactive …) clause is called a command, and can be called 
+by execute-extended-command 【Alt+x】.The (interactive "‹x›…") form takes a 
+single-letter code to indicate how the command gets its arguments from user. 
+There are about 30 codes for interactive, but the most useful are the following:
+
+(interactive), for commands that takes no argument.
+(interactive "n"), prompt user for a number as argument. (prompt string can follow 
+right after "n" as part of the string, 
+like this: (interactive "nWhat is your age?").)
+(interactive "s"), prompt user for a string as argument.
+(interactive "r"), for commands that takes 2 arguments, the beginning and ending 
+positions of the current region. This form is typically used for commands that act
+on a text selection.
+Here is a function definition template that majority of elisp commands follow:
+
+(defun myCommand ()
+  "One sentence summary of what this command do.
+
+More detailed documentation here."
+  (interactive)
+  (let (localVar1 localVar2 ...)
+    ; do something here ...
+    ; ...
+    ; last expression is returned
+  )
+)
+
+*** The Concept of Symbols in Lisp
+LISP differs from most programing languages such as C, Java, Perl, Python, in that 
+it deals with symbols, as opposed to just variables and values.
+
+In practice, this means that in lisp, variables can be manipulated in its 
+un-evaluated state. The situation is like the need for the “evaluate” command 
+in many languages, where the programer can built code as strings and do 
+evaluate(myCodeString) to achieve meta-programing. In lisp, variable's unevaluated 
+form are always available. You just put a apostrophe in front of it. This is why
+lisp refers to variable or function as “symbols”. This makes meta-programing 
+more powerful.
+
+For example, in most languages, once you defined x=3, you cannot manipulate the 
+variable “x” because it gets evaluated to 3 right away. If you want, you have 
+to build a string "x" and manipulate this string, then finally use something like 
+evaluate(myCodeString) to achieve the effect. In most languages, the use of 
+evaluate() breaks down quickly because the language is not designed for doing it.
+It's slow, difficult to debug, and there lacks many facilities for such meta 
+programing.
+
+The ability to meta-program has many applications. For example, when you need to 
+take user input as code (such as math formulas), or need to manipulate math 
+expressions, or writing programs that modify itself at run-time.
+** List & Vector
+*** Vectors
+To create a vector, write it like this (vector a b …).
+
+If you do not want the elements evaluated, write it like this: [a b …].
+**** Creating a Vector
+;; creating a vector
+(setq v (vector 3 4 5)) ; each element will be evaluated
+(setq v [3 4 5]) ; each element will NOT be evaluated
+
+**** Length
+
+(length (vector 3 4 5))
+
+**** Getting an Element
+use elt.
+
+(elt (vector 3 4 5) 0) ; -> 3. index starts at 0
+
+**** Changing a Element
+
+use aset.
+
+(setq v (vector 3 4 5))
+(aset v 0 "b")
+v ; -> ["b" 4 5]
+
+**** Nested Vector
+;; nested vector
+[[1 2] [3 4]]  ; 2 by 2 matrix
+[8 [3 [2 9] c] 7 [4 "b"]] ; random nested vector
+
+Looping Thru Vector
+One simple way to go thru a vector is using mapcar. Note that it returns a list, 
+not vector.
+
+;; add 1 to each
+(mapcar '1+ [3 4 5]) ; -> (4 5 6)
+
+;; get first element of each row
+(mapcar (lambda (x) (elt x 0)) [[1 2] [3 4]])
+
+If you want to map to list but don't need the return value, use mapc,
+mapc is for side effect only.
+
+(setq v [3 4 5])
+(mapc (lambda (x) (print (format "%d" x))) v)
+
+You can also use while. Example:
+
+(setq v [3 4 5])
+(setq i 0)
+
+(while (< i (length v))
+  (insert (format "%d" (elt v i)))
+  (setq i (1+ i))
+) ; inserts "345"
+**** Join and Misc
+You can join 2 vectors into a new vector by vconcat. You can convert a 
+vector to list by append, e.g. (append ‹myVector› nil).
+(setq v1 (vector 1 2 3))
+(setq v2 [3 4 5])
+(vconcat v1 v2)
+(append v nil)
+*** List
+To create a list, write it like this (list a b …).
+
+If you do not want the elements evaluated, write it like this: '(a b …).
+
+; prints a list
+(message "%S" '(a b c))
+
+; assign a list to a var
+(setq myList '(a b c))
+
+; create a list of values of variables
+(let ((x 3) (y 4) (z 5))
+  (message "%S" (list x y z))
+) ; prints "(3 4 5)"
+
+Some List Element Extraction Functions
+Function	  	     Purpose
+(car myList)		     first element
+(nth n myList)		     nth element (start from 0)
+(car (last myList))	     last element
+(cdr myList)		     2nd to last elements
+(nthcdr n myList)	     nth to last elements
+(butlast myList n)	     without the last n elements
+
+Here's some example of lists and element extraction.
+
+(car (list "a" "b" "c") )   ; ⇒ "a"
+(nth 1 (list "a" "b" "c") ) ; ⇒ "b"
+(car (last (list "a" "b" "c")) )   ; ⇒ "c"
+
+(cdr (list "a" "b" "c") )   ; ⇒ ("b" "c")
+
+Basic List Functions
+Function			Purpose
+(length myList)			number of elements
+(cons x myList)			add x to front
+(append myList1 myList2)	join two lists
+
+(length (list "a" "b" "c") ) ; ⇒ 3
+
+(cons "a" (list "c" "d") ) ; ⇒ ("a" "c" "d")
+(cons (list "a" "b") (list "c" "d") ) ; ⇒ (("a" "b") "c" "d")
+
+(append (list "a" "b") (list "c" "d") ) ; ⇒ ("a" "b" "c" "d")
+
+
+Functions that modify a list variable
+Function	      	Purpose
+(pop myList)		Remove first element from the variable. Returns the removed element.
+(nbutlast myList n)	Remove last n elements from the variable. Returns the new value of the variable.
+(setcar myList x)	replaces the first element in myList with x. Returns x.
+(setcdr myList x)	replaces the rest of elements in myList with x. Returns x.
+
+The weird names {car, cdr, cons} are like that for historical reasons.
+
+**** Looping Thru a List
+Here's a typical way of going thru a list. It is done with mapcar 
+or mapc. Use mapc when you don't need the return value.
+
+; add one to each list member
+(mapcar
+ (lambda (x) (+ x 1))
+ (list 1 2 3 4)
+) ; ⇒ (2 3 4 5)
+
+; add one to each list member using the build in function 1+
+(mapcar '1+ (list 1 2 3 4)) ; ⇒ (2 3 4 5)
+
+; take the 1st element of each element in the list
+(mapcar 'car  '((1 2) (3 4) (5 6))) ; ⇒ (1 3 5)
+
+; take the 2nd element of each element in the ilst
+(mapcar (lambda (x) (nth 1 x))  '((1 2) (3 4) (5 6))) ; ⇒ (2 4 6)
+
+; apply a file processing function to a list of files
+(mapc 'my-update-html-footer
+        (list
+"~/web/3d/viz.html"
+"~/web/3d/viz2.html"
+"~/web/dinju/Khajuraho.html"
+"~/web/dinju/Khajuraho2.html"
+"~/web/dinju/Khajuraho3.html"
+        )
+)
+
+The lambda above pretty much means “subroutine”. It essentially let you 
+define a function in the middle of your code. 
+The form is (lambda (‹args›) ‹body›). For example, (lambda (x y) (+ x y)) 
+would be a function that takes two arguments, x and y, and returns their 
+sum.
+
+Loop thru List with “while”
+
+Another common form to loop thru a list is using the while function. In
+each iteration, pop is used to reduce the list. Here's a example of going 
+thru a list using the while function.
+
+(let (myList)
+  (setq myList '(a b c))
+  (while myList
+     (message "%s" (pop myList))
+     (sleep-for 1)
+  )
+)
+
+Following is another example of using while to loop thru a list.
+
+; pop head of myList
+; prepend it to myList2
+; resulting a reversed list
+(let (myList myList2)
+  (setq myList '(a b c))
+  (setq myList2 '())
+  (while myList
+    (setq myList2
+          (cons (pop myList) myList2)
+    )
+  )
+  myList2
+)
+
+
+First, use let to set a code block, with temporary variables “myList” 
+and “myList2”. “myList” is then set to '(a b c). “myList2” is set 
+to a empty list. Then, in the body of while, the (pop myList) drops 
+myList's first element and returns it, the (cons (pop myList) myList2) 
+creates a list with the new element prepended to “myList2”. 
+(Note: This code is to illustrate going thru a list. If you want to 
+reverse a list, use the reverse function.)
+*** List vs Vector
+
+Lisp's list and vector both are subtypes of the “sequences” datatype. 
+Many functions, such as {elt, mapcar}, work on any sequence type. Here's 
+their primary differences:
+
+Vector: Access time to any element is constant.
+List: Access time to a element is proportional to the distance of the 
+element's position in the list.
+List's length can grow by prepending with cons, and can have the first
+element dropped by cdr. These operations has constant time.
+Vector's length cannot change. (if you create a new copy with extra item, 
+the time is proportional to the length)
+Lisp culture is to almost always use list. I recommend using vector as 
+much as possible. Use list ONLY IF you need to constantly grow the list. 
+Even for that case, i recommend using vector by starting with large length,
+using the function make-vector. 
+(☛ Guy Steele on Parallel Programing: Get rid of cons!)
+
+You can nest list and vectors in any way. Example:
+
+;; mixed nested list/vector
+
+[ '(3 4) '(5 8) [4 2]]
+
+(list [8 7] '(4 1))
+
+*** List of Pairs: Association List ＆ Hash Table
+Association List (alist)
+
+Another important datatype similar to list and vector is called Association 
+List (aka alist). It is similar to Python's dictionary or Perl's hash table 
+or PHP's array. See: (info "(elisp) Association Lists").
+
+For a example of using alist, see: Emacs Lisp: Batch Script to Validate 
+Matching Brackets.
+
+Hash Table
+
+Elisp also has a true hash table, if you need large number of pairs. 
+See: Emacs Lisp Hash Table.
+
+** Programming: Overview of Text-Processing in Emacs Lisp
+*** Example of Simle Elisp Functions
+**** Cursor Position
+;; current cursor position is called “point”.
+;; The first char in buffer is 1
+;; This returns the current cursor position
+(point)
+
+;; returns the position of the beginning/end of region
+(region-beginning)
+(region-end)
+
+;; position for beginning/ending of current line
+(line-beginning-position)
+(line-end-position)
+
+;; returns the position for the beginning/end of buffer, taking account of 
+;; narrow-to-region
+(point-min)
+(point-max)
+
+;; absolute end position of buffer, regardless of narrow-to-region
+(buffer-end 1)
+
+**** Moving Cursor and Searching
+;; move cursor to position 392
+(goto-char 392)
+
+;; move cursor by n chars
+(forward-char n)
+(backward-char n)
+
+;; move cursor to the location of myStr
+;; returns the new position
+(search-forward myStr) ; end of myStr
+(search-backward myStr) ; beginning of myStr
+
+;; move cursor to the location matched by a regex
+;; returns the new position
+(re-search-forward myRegex)
+(re-search-backward myRegex)
+
+;; move cursor to the first char that's not “a to z”
+;; Returns the distance traveled.
+(skip-chars-forward "a-z")
+(skip-chars-backward "a-z")
+
+(point)
+(goto-char 16844)
+(forward-char 5)
+(backward-char 5)
+(search-forward "hello")
+
+**** Deleting/Inserting/Changing Text
+;; delete 9 chars starting at current cursor pos
+(delete-char 9)
+
+;; deleting text
+(delete-region myStartPos myEndPos)
+
+;; insert string at current cursor position
+(insert "hi i ♥ u.")
+
+;; get the string from buffer
+(setq myStr (buffer-substring myStartPos myEndPos))
+
+;; change case of the 1st char in the word
+(capitalize-region myStartPos myEndPos)
+
+**** Strings
+;; length
+(length "abc") ; returns 3
+
+;; gets a substring
+(substring myStr startIndex endIndex)
+
+;; change a given string using regex
+(replace-regexp-in-string myRegex myReplacement myStr)
+
+;; concat strings
+(concat myStr1 myStr2 ...)
+
+**** Buffers
+;; get the buffer
+(get-buffer myBuffername-string)
+;; return the name of current buffer
+(buffer-name)
+
+;; return the full path of current file
+(buffer-file-name)
+
+;; switch to the buffer named myBufferName
+(set-buffer myBufferName)
+
+;; save current buffer
+(save-buffer)
+
+;; close a buffer
+(kill-buffer myBuffName)
+
+;; close the current buffer
+(kill-this-buffer)
+
+;; temporarily sets a buffer as current to work with
+(with-current-buffer myBuffer
+  ;; do something here …
+)
+
+**** Files
+;; file-name is just a string
+;; open a file (in a buffer)
+(find-file myPath)
+
+;; same as “Save As”.
+; close current buffer and open the new saved
+(write-file myPath)
+
+;; insert file into current position
+(insert-file-contents myPath)
+
+;; append a text block to file
+(append-to-file myStartPos myEndPos myPath)
+
+;; renaming file
+(rename-file fileName newName)
+
+;; copying file
+(copy-file oldName newName)
+
+;; deleting file
+(delete-file fileName)
+
+;; get dir path
+(file-name-directory myFullPath)
+
+;; get filename part
+(file-name-nondirectory myFullPath)
+
+;; get filename's suffix
+(file-name-extension myFileName)
+
+;; get filename sans suffix
+(file-name-sans-extension myFileName)
+
+**** A Simple Example
+
+This code illustrates how to insert a string, then position cursor somewhere inside.
+
+(defun insert-p-tag ()
+  "Insert <p></p> at cursor point."
+  (interactive)
+  (insert "<p></p>")
+  (backward-char 4))
+Type the above, then select the whole code, call eval-region 【Alt+x】. To execute 
+the command, call “insert-p-tag”.
+
+For many simple and practical elisp examples, see Elisp Examples.
+
+For a basic intro of elisp, see: Emacs Lisp Basics.
+
+*** Programming a Major Mode
+The above gives you many examples of text-processing functions in elisp.
+
+The other area of elisp programing, is to program emacs itself, to create 
+major or minor modes and their interface. For example, creating menus, 
+interpreting keyboard inputs, changing behavior of mouse buttons, syntax 
+coloring, manipulating windows, displaying image files, creating a file
+manager (dired), creating a interactive command line interface (shell), 
+programing network clients (e.g. ftp, irc, http), creating user interface 
+(menus, buttons, toolbars, status bar), creating keyword completion, etc.
+In summary, these type of tasks we can call it “Programing a Major Mode”.
+
+Tasks of writing a mode is slightly more complex, because it involves 
+understanding many of emacs's systems. For example, keyboard/mouse input 
+event system, display system (windows and fonts), user interface system 
+(menu, windows, scroll bar, tool bar), major/minor mode's structure.
+
+For most people, text edit programing is far more useful to learn, because 
+that's what text editor users need to do in their jobs, and most major modes 
+have already been written for them.
+
+For writing a major mode, you should first have good elisp experience in 
+text processing first. Here's a basic example of writing a major mode: How 
+to Write a Emacs Major Mode for Syntax Coloring.
+
+** Emacs: How to Evaluate Emacs Lisp Code
+Command Name	Acting Area							Key
+eval-last-sexp	the complete lisp expression to the left of cursor	【Ctrl+x Ctrl+e】
+eval-defun	the function definition block (defun) the cursor is in.
+		(your cursor needs to be near top level.)		【Ctrl+Alt+x】 
+		      	     	      	      	  			(only when in lisp modes)
+eval-region	text selection							◇
+eval-buffer	whole file in current window					◇
+load-file	promps you for a file name					◇
+eval-expression	promps you to type code						◇
+
+   
+** Emacs: Finding Functions and Documentation Lookup
+*** Searching for Functions
+To search command names using a regex, call apropos-command 【F1 a】.
+
+To search both function and command namespaces, call apropos-command with a empty argument, like this: 【Ctrl+u F1 a】.
+
+(Tech detail: In emacs, “commands” are a subset of “functions”. Commands are functions that can be called interactively (by typing 【Meta+x】). A function is a command when its definition contains the (interactive …) clause.)
+
+To search all symbols space (commands, functions, variables), call apropos. 
+
+*** Finding a Funcion's Documentation in Elisp Mannual
+Use elisp-index-search to find a function's documentation in the emacs lisp manual.
+Use emacs-index-search to find a function's documentation in the emacs manual.
+
+** Emacs Lisp Example 1
+*** Insert Text
+This code illustrates how to insert a string, and also position cursor after the insertion.
+
+(defun insert-p-tag ()
+  "Insert <p></p> at cursor point."
+  (interactive)
+  (insert "<p></p>")
+  (backward-char 4))
+You can use this code to insert your {signature, function template, XML template, headers, footers, …}.     
+
+*** wrap-markup-region
+This code shows how to place a string at the beginning and end of a region.
+
+(defun wrap-markup-region (start end)
+  "Insert a markup <b></b> around a region."
+  (interactive "r")
+  (save-excursion 
+    (goto-char end) (insert "</b>")
+    (goto-char start) (insert "<b>")
+    ))
+You can use this code to wrap a HTML/XML tag on a selected text, or wrap brackets.
+*** select-current-word, select-current-line
+This code shows you how to set a mark (select text) programmatically.
+
+(transient-mark-mode 1)
+
+(defun select-current-word ()
+"Select the word under cursor.
+“word” here is considered any alphanumeric sequence with “_” or “-”."
+ (interactive)
+ (let (pt)
+   (skip-chars-backward "-_A-Za-z0-9")
+   (setq pt (point))
+   (skip-chars-forward "-_A-Za-z0-9")
+   (set-mark pt)
+ ))
+(transient-mark-mode 1)
+
+(defun select-current-line ()
+  "Select the current line"
+  (interactive)
+  (end-of-line) ; move to end of line
+  (set-mark (line-beginning-position)))
+See also: Emacs: What's Region, Active Region, transient-mark-mode?.
+*** Find＆Replace Text Region
+This code illustrates how to do text replacements on a region. Very useful. For example, you can use it to replace HTML characters that needs to be encoded. For example:
+
+& → &amp;
+< → &lt;
+> → &gt;
+(defun replace-html-chars-region (start end)
+  "Replace “<” to “&lt;” and other chars in HTML.
+This works on the current region."
+  (interactive "r")
+  (save-restriction 
+    (narrow-to-region start end)
+    (goto-char (point-min))
+    (while (search-forward "&" nil t) (replace-match "&amp;" nil t))
+    (goto-char (point-min))
+    (while (search-forward "<" nil t) (replace-match "&lt;" nil t))
+    (goto-char (point-min))
+    (while (search-forward ">" nil t) (replace-match "&gt;" nil t))
+    )
+  )
+
+You can modify the code to do replacement on URL Percent Encoding. For example:
+
+  → %20
+~ → %e7
+_ → %5f
+and so on. You can also use it to do Greek Letter replacement when writing math. For example: alpha → α, beta → β, … etc.
+
+For some detailed lesson on this code, see: Repeated Find Replace.
+*** delete-enclosed-text
+This code illustrates how to delete a text enclosed by any pairs of delimiters.
+
+For example, if you are editing HTML code, suppose you have text <p>good morn and this is a long sentence …</p> and your cursor is somewhere in between the tags. You want to quickly delete all texts inside the p tags. The following function will do. It will also, delete any text between quotes or parenthesis.
+
+(defun delete-enclosed-text ()
+  "Delete texts between any pair of delimiters."
+  (interactive)
+  (save-excursion
+    (let (p1 p2)
+      (skip-chars-backward "^([<>“\"") (setq p1 (point))
+      (skip-chars-forward "^)]<>”\"") (setq p2 (point))
+      (delete-region p1 p2))))
+For many related code, see: Suggestions on Emacs's mark-word Command: extend-selection, select-text-in-quote, select-current-line, select-current-block
+
+*** Delete Linebreaks
+This example shows how to temporarily change a pre-defined variable's value, then call a function whose behavior depends on the var.
+
+(defun remove-line-breaks () 
+  "Remove line endings in a paragraph."
+  (interactive) 
+  (let ((fill-column (point-max))) 
+    (fill-paragraph nil)))
+fill-paragraph is a function that hard-wraps the current paragraph. (it removes some space character and inserts newline character at every ≈70 characters) “fill-column” is a variable used by fill-paragraph to determine where to chop. It has a value of 70 by default.
+
+The above code temporarily set “fill-column” to a large number (point-max), then, it calls fill-paragraph. So, effectively, it replaces all newline char by space in the current paragraph. (Note: “paragraph” may be different depending on the major mode. Its dependent on syntax table. If it doesn't work, try switching mode, to text-mode.)
+
+For more detail, see: Emacs unfill-paragraph, unfill-region, compact-uncompact-block.
+*** Next/Previous User Buffer
+In this example, simple lisp constructions are shown, including while, and, string-match. This is also a very convenient function. It allows you to switch to the next buffer without going thru a bunch of irrelevant buffers that emacs created, e.g. {*scratch*, *Messages*, *Shell Command Output*, *Completions*, *calc*, *grep*, …}.
+
+(defun next-user-buffer ()
+  "Switch to the next user buffer.
+User buffers are those whose name does not start with *."
+  (interactive)
+  (next-buffer)
+  (let ((i 0))
+    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+      (setq i (1+ i)) (next-buffer))))
+(defun previous-user-buffer ()
+  "Switch to the previous user buffer.
+User buffers are those whose name does not start with *."
+  (interactive)
+  (previous-buffer)
+  (let ((i 0))
+    (while (and (string-equal "*" (substring (buffer-name) 0 1)) (< i 20))
+      (setq i (1+ i)) (previous-buffer) )))
+You can set a key for them similar for browser's next/previous tab.
+
+(global-set-key (kbd "C-<prior>") 'previous-user-buffer) ; Ctrl+PageDown
+(global-set-key (kbd "C-<next>") 'next-user-buffer) ; Ctrl+PageUp
+
+*** Inserting a Random Number
+I needed a fast way to insert random numbers. So i wrote:
+
+(random t) ; seed it randomly
+
+(defun insert-random-number ()
+  "Insert a random number between 0 to 999999."
+  (interactive)
+  (insert (number-to-string (random 999999))) )
+
+(defun insert-random-hex ()
+  "Insert a random 4-digit hexidecimal number."
+  (interactive)
+  (let (myCharset (possibleCharsCount 16))
+    (setq myCharset "1234567890abcdef" )
+    (dotimes (ii 4)
+      (insert (elt myCharset (random possibleCharsCount))) ) )
+  ;; (insert (format "%4x" (random 65535)) )
+  )
+  
+Elisp does not automatically convert number to string. So, number-to-string is very convenient. There's also string-to-number.
+
+Once i defined this function, i can either give it a Keyboard Shortcut.
+
+Exercise: write a command that insert current date/time. (answer can be found at: How to Update Webfeed with Emacs Lisp)
+
+** Emacs Lisp Example 2
+;; to be continued...

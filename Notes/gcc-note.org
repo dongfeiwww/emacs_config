@@ -1,0 +1,16 @@
+1. -E 选项产生预处理后的输出
+   gcc -E main.c > main.i
+2. -S 选项产生汇编代码
+   gcc -S main.c > main.s
+3. -C 选项产生编译后的目标文件
+   gcc -C main.c
+4. -l 选项链接共享库
+   gcc  -Wall main.c -o main -lCPPfile
+   The gcc command mentioned above links the code main.c with the shared library libCPPfile.so to produce the final executable ‘main’.
+5. -D 选项使用编译时宏 
+   gcc -Wall -DMY_MACRO main.c -o main
+6. -Werror 选项将警告信息转换成错误信息
+   gcc -Wall -Werror main.c -o main
+7. @opt_file 将选项信息放入文件中，通过在命令行中使用@来使用文件中的选项信息
+   gcc main.c @opt_file
+
