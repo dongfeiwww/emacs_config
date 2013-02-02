@@ -1,3 +1,9 @@
+;; use utf-8 charset for html and yml files
+(modify-coding-system-alist 'file "\\.markdown\\'" 'utf-8-unix)
+(modify-coding-system-alist 'file "\\.md\\'" 'utf-8-unix)
+(modify-coding-system-alist 'file "\\.html\\'" 'utf-8-unix)
+(modify-coding-system-alist 'file "\\.yml\\'" 'utf-8-unix)
+
 ;; msys shell
 (defun msys-shell ()
   (interactive)
@@ -152,12 +158,11 @@
 (add-to-list 'ac-modes 'text-mode)
 (add-to-list 'ac-modes 'makefile-gmake-mode)
 ;; setup for yasnippet
-;; (require 'yasnippet)
-(autoload 'yas-reload-all "yasnippet" t)
+(require 'yasnippet)
 (setq yas-snippet-dirs '("~/.emacs.d/snippets"))
 (setq yas-also-auto-indent-first-line t)
 
-;;(yas-reload-all)
+(yas-reload-all)
 ;; (yas-global-mode t)
 ;; setup for bm
 (add-to-list 'load-path 
@@ -218,7 +223,7 @@
 	    (require 'xcscope)))
 (add-hook 'c-mode-common-hook
 	  '(lambda ()
-	    (autoload 'yas-minor-mode-on "yasnippet" "loading yasnippet" t)
+	     (require 'yasnippet)
 	    (yas-minor-mode-on)))
 ;; setup for magit
 (autoload 'magit-status "magit" nil t)

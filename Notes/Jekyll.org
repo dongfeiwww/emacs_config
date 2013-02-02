@@ -1,0 +1,267 @@
+* Jekyll 介绍
+** Jekyll 做的事
+  - 命令Jekyll --server递归解析当前目录下的文件，用于生成html文件，生成后的所有文件放置在_site目录下面。
+** Jekyll Overview
+  - Jekyll是一个用ruby写的解析引擎，用于从动态的组件中生成静态的网站。
+** Jekyll 不是发布博客的软件
+  - 而是解析引擎，所有的网页被解析好了以后，便只能静态地提供内容。传统的动态博客，像Wordpress需要一个数据库和服务器端的代码(例如php，python，或者perl)。
+** Jekyll 的优点
+  1. Ability to write content in markdown or textile in your favorite text-editor.
+  2. Ability to write and preview your content via localhost.
+  3. No internet connection required.
+  4. Ability to publish via git.
+  5. Ability to host your blog on a static web-server.
+  6. Ability to host freely on GitHub Pages.
+  7. No database required.
+
+** Jekyll 应用程序的基本框架布局
+  - 文件树目录
+    .
+    |-- _config.yml
+    |-- _includes
+    |-- _layouts
+    |   |-- default.html
+    |   |-- post.html
+    |-- _posts
+    |   |-- 20011-10-25-open-source-is-good.markdown
+    |   |-- 20011-04-26-hello-world.markdown
+    |-- _site
+    |-- index.html
+    |-- assets
+	|-- css
+	    |-- style.css
+	|-- javascripts
+  - 各文件的用途
+    _config.yml
+    Stores configuration data.
+
+    _includes
+    This folder is for partial views.
+
+    _layouts 
+    This folder is for the main templates your content will be inserted into. You can have different layouts for different pages or page sections.
+
+    _posts
+    This folder contains your dynamic content/posts. the naming format is required to be @YEAR-MONTH-DATE-title.MARKUP@.
+
+    _site
+    This is where the generated site will be placed once Jekyll is done transforming it.
+
+    assets
+    This folder is not part of the standard jekyll structure. The assets folder represents any generic folder you happen to create in your root directory. Directories and files not properly formatted for jekyll will be left untouched for you to serve normally.
+** Jekyll 中的内容
+  - Posts和pages
+    - 都必须由markdown，textile，或者HTML以及也许包含的Liquid 模板语法来编写。posts和pages都可以有以网页为基础的元数据(meta-data)，例如标题，url路径，以及任何自定义的元数据。
+  - 编写Posts
+    - 一份post被适当地格式化之后必须位于目录_posts下面
+    - 格式化
+      - post地文件名必须为YEAR-MONTH-DATE-title.MARKUP
+      - 每个post文件必须要有YAML文件头(YAML Front-Matter)置于文件的开头，该文件头用于指定当前文件的元数据。
+      - 排序，只支持按日期进行顺向或者反向的排序，日期已被硬编码到文件名中。要修改顺序只能通过修改日期
+      - 标签，作为post元数据的一部分加入到内容中，同时标签也被加入到整个网站的集合上。
+      - 类别，posts可以通过YAML文件头提供的元数据进行分类。分类具有层次性。[[[http://jekyllbootstrap.com/lessons/jekyll-introduction.html][Jekyll Intro]]]
+  - 编写Pages
+    - Pages通过适当地格式化来创建，可放置在根目录或者任何不带起头下划线的子目录中。
+    - 格式化
+      - 为了将pages注册为Jekyll page，该page必须包含YAML文件头。注册一份page意味着:
+	1. that Jekyll will process the page
+        2. that the page object will be available in the site.pages array for inclusion into your templates.
+    - 类别和标签：pages不支持类别和标签
+    - 子目录
+      - 如果pages是在子目录层级中定义的，那么指向pages的路径将会反映在url中。例如：
+	.
+	|-- people
+	    |-- bob
+		|-- essay.html
+        这一网页的url为：http://yourdomain.com/people/bob/essay.html
+    - 推荐使用的pages
+      - index.html
+	You will always want to define the root index.html page as this will display on your root URL.
+      - 404.html
+	Create a root 404.html page and GitHub Pages will serve it as your 404 response.
+      - sitemap.html
+	Generating a sitemap is good practice for SEO.
+      - about.html
+	A nice about page is easy to do and gives the human perspective to your website.
+** Jekyll 中的模板
+  - 模板的作用
+    - 模板用来包含page和post的内容。所有的模板都能访问全站的对象变量:site以及page的对象变量:page。site变量有着所有相对于该网站可访问的内容和元数据。page变量有着给定page或post的可访问数据。
+  - 创建模板
+    - 模板是通过适当格式化一个文件并将其放置于_layouts目录下来创建的。
+  - 格式化
+    - 模板应该由html编写，并包含YAML文件头。所有的模板都可以包含Liquid代码来处理网站的数据。
+    - 在模板中渲染Page/Post的内容
+      - 在所有的模板中包含一个特殊的变量:content。这个content变量拥有page/post中的内容，当你想要把内容嵌入到模板中时，使用content变量。例如：
+	...
+	<body>
+	  <div id="sidebar"> ... </div>
+	  <div id="main">
+	    {{content}}
+	  </div>
+	</body>
+	...
+  - 子模板
+    - 在一个模板下面渲染的模板
+  - 包含项
+    - 创建的包含项文件必须位于目录_includes下面。包含项不是模板，但其是被包含进模板中的代码片段。可以将包含项文件中的代码当作其父模板中的代码(类似宏替换)。任何在模板中有效的代码都可以使用在包含项中。
+
+** 使用Liquid创建模板
+  - 什么是Liquid?
+    - Liquid被设计成一个让最终用户可以在伺服器上执行逻辑的安全模板语言。
+    - Jekyll使用Liquid来在最后的网页中生成post内容，并将Liquid作为与post/page中的数据进行交互的主要接口。
+  - Liquid 对程序员并不友好
+    - Liquid语言使你不能做任何语言实现没有显式指定的事情，而且你只能访问模板显式传递的数据结构。最好不要浪费时间去hack Liquid。
+** 静态资源(Static Assets)
+  - 根目录下或者任何没有起头下划线的子目录中的文件(不是pages)即为静态资源。它们没有有效的YAML文件头，因而不会被当作Jekyll Pages。
+  - 静态资源因被用作图片，样式表(CSS)，以及Javascript文件。
+** Jekyll是如何解析文件的？
+  - 内容解析
+    - 使用textile或者markdown标记语言完成
+    - 解析对象: Post文件或者Page文件
+  - 模板解析
+    - 使用模板化语言Liquid完成
+    - 解析对象: 位于_layouts目录下的模板文件
+  - 其它的文件或者文件夹
+    - 不被解析
+** 格式化文件，为解析做准备
+  - 模板文件，posts，pages都需要包含有效的YAML文件头，以保证其被Jekyll解析。即使该文件头是空的。
+  - YAML文件头必须在模板文件/post/page/文件的最开头，例如:
+    ---
+    layout: post
+    category : pages
+    tags : [how-to, jekyll]
+    ---
+
+    ... contents ...
+    文件头必须以三个连字号开头，并且以三个连字号结尾，文件头内必须为有效的YAML语法。
+    文件头设置参考[[https://github.com/mojombo/jekyll/wiki/YAML-Front-Matter][A comprehensive explanation of YAML Front Matter]]
+  - 定义布局，以供Posts和Templates解析
+    - 在YAML文件头中的layout参数用于指定该文件应被嵌入到哪一个模板文件。如果一个模板文件指定了layout参数，则该模板文件被当作子模板文件来使用。也就是模板的嵌套使用。
+** Jekyll 如何生成最终的静态文件？
+  - 
+    
+* 模板数据API
+  - 模板数据API是一个易理解的数据列表，可通过Liquid模板语言在模板文件中进行访问。
+** 全局Page/Post数据
+    Jekyll处理的每个内容文件不是page就是post。在这两种情况下，用模板进行渲染时，与特定的page或者post相关的数据都用page变量来访问。page是一个全局的变量。page内典型的内容为:
+    # The following format represents a Jekyll::Post or Jekyll::Page object. 
+    # Jekyll::Post and Jekyll::Page objects may be nested in other variables in which case you can expect this same format:
+    page = {
+     "layout"=>"post",
+     "categories"=>["lessons"],
+     "title"=>"Jekyll Liquid Api",
+     "url"=>"/lessons/jekyll-liquid-api.html",
+     "date"=>2011-01-27 00:00:00 -0800,
+     "id"=>"/lessons/jekyll-liquid-api",
+     "next"=> #Jekyll:Post @id="/lessons/template-data-api",
+     "previous"=> #Jekyll:Post @id="/lessons/configuring-urls",
+     "tags"=>["tagname1", "tagname2"],
+     "custom_variable"=> ["a", "custom", "defined", "data-structure"],
+     "content"=>"... this is the unparsed raw html page/post content ..."
+    }
+  - 设定自定义的数据
+    - 可以通过YAML文件头设定自定义的变量，它们将被自动包含在page hash中。
+    - 另一件值得注意的事情是每一个Jekyll处理的实例都被当作page/post 对象来处理，所有的YAML文件头都被合并到当前的page/post实例中。因此当你定义自定义数据在post文件中，然后再定义自定义数据在子模板中，甚至定义自定义数据到根模板中，最后所有的数据都被合并到同一个page hash中(注意命名冲突问题)。
+** 内容数据(Content Data)
+    - Jekyll使用一个特别的叫做content的变量来引用当前page/post中的内容。content与page.content的区别在于前者使用markdown解析，而后者不解析，保持原样不变的。
+  - 在主模板中的content
+    - 当在主模板中调用content时，content变量包含所先前有被page/post渲染的子模版。
+  - 在子模版中的content
+    - 当在子模板调用content时，content变量包含所有先前被page/post渲染的子子模版。如果没有子子模板，则content变量只反映被markdown或者textile处理的page/post。
+
+
+** 全局Site数据
+  - 全局数据，在Liquid可以使用的地方，该数据均可访问。这些地方包括模板文件，包含项，posts文件和pages文件。典型site数据包括:
+    site = {
+      "related_posts"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+     "safe"=>false,
+     "auto"=>true,
+     "server"=>true,
+     "server_port"=>4000,
+     "source"=>"/Users/jade/Dropbox/github/jekyll-bootstrap",
+     "destination"=>"/Users/jade/Dropbox/github/jekyll-bootstrap/_site",
+     "plugins"=>"/Users/jade/Dropbox/github/jekyll-bootstrap/_plugins",
+     "future"=>true,
+     "lsi"=>false,
+     "pygments"=>false,
+     "markdown"=>"maruku",
+     "permalink"=>"/:categories/:title.html",
+     "markdown_ext"=>"markdown,mkd,mkdn,md",
+     "textile_ext"=>"textile",
+     "maruku"=>
+      {
+       "use_tex"=>false,
+       "use_divs"=>false,
+       "png_engine"=>"blahtex",
+       "png_dir"=>"images/latex",
+       "png_url"=>"/images/latex"
+      },
+     "rdiscount"=>
+      {
+	"extensions"=>[]
+      },
+     "redcarpet"=>
+      {
+	"extensions"=>[]
+      },
+     "kramdown"=>
+      {
+       "auto_ids"=>true,
+       "footnote_nr"=>1,
+       "entity_output"=>"as_char",
+       "toc_levels"=>"1..6",
+       "use_coderay"=>false,
+       "coderay"=>
+	{
+	 "coderay_wrap"=>"div",
+	 "coderay_line_numbers"=>"inline",
+	 "coderay_line_number_start"=>1,
+	 "coderay_tab_width"=>4,
+	 "coderay_bold_every"=>10,
+	 "coderay_css"=>"style"
+	}
+      },
+     "time"=>2011-12-20 14:03:53 -0800,
+     "posts"=>
+      [...(Array of liquified Jekyll::Post objects)...],
+     "pages"=>
+      [...(Array of liquified Jekyll::Page objects)...],
+     "html_pages"=>
+      [...(Array of liquified Jekyll::Page objects)...],
+     "categories"=>
+      {"examples"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+       "lessons"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+     "tags"=>
+      {
+       "permalinks"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+       "urls"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+       "templating"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+       "liquid"=>
+	[...(Array of liquified Jekyll::Post objects)...],
+       "posts"=>
+	[...(Array of liquified Jekyll::Post objects)...]
+      }
+    }
+  - 自定义全站数据
+    - 使用_config文件，该文件持有的变量将被合并到site变量中。
+  - 类别(Categories)
+    - 类别只能应用到post中，而且只能将一个post归到某些类别中，类别也是全局数据。可通过全站访问。并作为全站的一个集合。当对类别进行迭代遍历时，是按字母顺序进行的(alpha descending)。
+  - 标签的功能和类别类似
+
+* Jekyll Liquid Api
+** 介绍
+   - Jekyll使用标准的Liquid模板语言包，包括其他有用的扩展。
+   - Jekyll-bootstrap 不支持插件开发，只能使用标准的过滤器和逻辑
+
+
+** Liquid 简单教程
+   [[http://github.com/Shopify/liquid/wiki/Liquid-for-Designers][The link contains a comprehensive course in everything available in Liquid. The standard library is also available in Jekyll.]]
+
+** Jekyll提供的Liquid扩展
+   [[http://github.com/mojombo/jekyll/wiki/Liquid-Extensions][Jekyll introduces a few other filters and tags as outlined here]]
