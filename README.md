@@ -1,2 +1,1 @@
-save the emacs files
-enjoy the git
+my emacs configs
