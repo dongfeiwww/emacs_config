@@ -29,13 +29,47 @@
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 (add-to-list 'load-path "~/config/")
 (add-to-list 'load-path "~/.emacs.d/plugins/auto-complete")
-(add-to-list 'load-path "~/.emacs.d/plugins/xcscope")
+;; (add-to-list 'load-path "~/.emacs.d/plugins/xcscope")
 (add-to-list 'load-path
 	     "~/.emacs.d/plugins/yasnippet")
 (add-to-list 'load-path "~/.emacs.d/plugins/cedet-1.1")
 (add-to-list 'load-path "D:/emacs-24.2/.emacs.d/elpa/helm-20130124.943")
+(add-to-list 'load-path "D:/emacs-24.2/.emacs.d/elpa/glsl-mode-20130209.13/glsl-mode")
 
+;; setup for glsl-mode
+(autoload 'glsl-mode "glsl-mode" nil t)
+  (add-to-list 'auto-mode-alist '("\\.glsl\\'" . glsl-mode))
+  (add-to-list 'auto-mode-alist '("\\.vert\\'" . glsl-mode))
+  (add-to-list 'auto-mode-alist '("\\.frag\\'" . glsl-mode))
+  (add-to-list 'auto-mode-alist '("\\.geom\\'" . glsl-mode))
 
+;; setup for the gtags
+(if (eq system-type 'windows-nt)
+        (progn
+          (setq exec-path (add-to-list 'exec-path "D:/home/bin/gtags/bin"))
+          (setenv "PATH" (concat "D:\\home\\bin\\gtags\\bin;" (getenv "PATH")))))
+(autoload 'gtags-mode "gtags" "" t)
+;; (add-hook 'c-mode-common-hook
+;; 	  '(lambda ()
+;; 	     (gtags-mode 1)))
+;; There are two hooks, gtags-mode-hook and gtags-select-mode-hook.
+;; The usage of the hook is shown as follows.
+;;
+;; [Setting to use vi style scroll key]
+;;
+;; (add-hook 'gtags-mode-hook
+;;   '(lambda ()
+;;      (define-key gtags-mode-map "\C-f" 'scroll-up)
+;;      (define-key gtags-mode-map "\C-b" 'scroll-down)
+;; ))
+;;
+;; [Setting to make 'Gtags select mode' easy to see]
+;;
+(add-hook 'gtags-select-mode-hook
+  '(lambda ()
+     (setq hl-line-face 'underline)
+     (hl-line-mode 1)
+))
 ;; setup for the emacs-color-theme
 (load-theme 'zenburn t)
 ;;(add-to-list 'custom-theme-load-path 
@@ -99,7 +133,10 @@
         "D:/MinGW/x86_64-w64-mingw32/include"
 	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include"
 	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include/c++"
-	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include-fixed"))
+	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include-fixed"
+	;; "D:/MinGW/glew/include"
+	;; "d:/MinGW/freeglut/include"
+))
 (require 'semantic-c nil 'noerror)
 (let ((include-dirs user-include-dirs))
   (when (eq system-type 'windows-nt)
@@ -108,6 +145,9 @@
           (semantic-add-system-include dir 'c++-mode)
           (semantic-add-system-include dir 'c-mode))
         include-dirs))
+(when (cedet-gnu-global-version-check t)
+  (semanticdb-enable-gnu-global-databases 'c-mode)
+  (semanticdb-enable-gnu-global-databases 'c++-mode))
 (setq-mode-local c-mode semanticdb-find-default-throttle
                  '(project unloaded system recursive))
 ;;sematic jump between the function call and function called
@@ -138,15 +178,16 @@
 (autoload 'auto-complete-mode "auto-complete-config" nil)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/plugins/auto-complete//ac-dict")
 (ac-config-default)
-(setq ac-auto-show-menu 0.5)
+;; show the menu after 0.5 seconds
+;;(setq ac-auto-show-menu 0.5)
 (define-key ac-completing-map "\M-/" 'ac-stop)
 ;; fix the bug for [return] in autopair
 (define-key ac-completing-map [return] 'ac-complete)
 ;;(define-key ac-completing-map [tab] 'ac-expand)
 ;;(defun ac-common-setup ()
 ;;  (setq ac-sources (append ac-sources '(ac-source-words-in-all-buffer))))
-(add-hook 'c-mode-common-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
-(add-hook 'c-mode-common-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic-raw)))
+;; (add-hook 'c-mode-common-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
+;; (add-hook 'c-mode-common-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic-raw)))
 (add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
 ;; Complete member name by C-c . for C++ mode.
 (add-hook 'c-mode-common-hook
@@ -217,10 +258,11 @@
   (c-set-style "awk"))
 (add-hook 'c-mode-common-hook 'my-c-mode-hook)
 ;;Set the xcscope
-(add-hook 'c-mode-common-hook
-	  (lambda ()
-;;	    (linum-mode t)
-	    (require 'xcscope)))
+;; (add-hook 'c-mode-common-hook
+;; 	  (lambda ()
+;; ;;	    (linum-mode t)
+;; 	    (require 'xcscope)))
+;; setup for the yasnippet
 (add-hook 'c-mode-common-hook
 	  '(lambda ()
 	     (require 'yasnippet)

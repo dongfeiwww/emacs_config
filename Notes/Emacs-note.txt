@@ -65,6 +65,7 @@ C-x e			kmacro-end-and-call-macro
 C-q 			M-x quoted-insert type a char and suppress its functionality
 
 * 交互式函数
+M-x hexl-mode				16进制编辑器模式
 M-x count-words				计算英文单词的数量
 M-x fill-paragraph			将太长的行分割为长度为fill-column的多行
 M-x re-builder  			正则表达式的交互匹配模式
@@ -92,6 +93,8 @@ M-x flush-lines				Delete lines containing matches for REGEXP.
 (setq make-backup-files nil)		stop creating those backup~ files
 (setq auto-save-default nil)		stop creating those #auto-save# files
 
+* Dired mode 操作
+w (dired-copy-filename-as-kill)		puts the names of the marked (or next n) files into the kill ring, as if you had killed them with C-w. The names are separated by a space.
 * 变量 (C-h v)
   default-directory		获取默认目录
 * emacs启动操作
