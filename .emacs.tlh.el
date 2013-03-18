@@ -49,20 +49,13 @@
           (setq exec-path (add-to-list 'exec-path "D:/home/bin/gtags/bin"))
           (setenv "PATH" (concat "D:\\home\\bin\\gtags\\bin;" (getenv "PATH")))))
 (autoload 'gtags-mode "gtags" "" t)
-;; (add-hook 'c-mode-common-hook
-;; 	  '(lambda ()
-;; 	     (gtags-mode 1)))
+;;(autoload 'gtags-mode "gtags-config" "loading gtags-config" t)
+(add-hook 'c-mode-common-hook
+	  '(lambda ()
+	     (gtags-mode 1)))
+
 ;; There are two hooks, gtags-mode-hook and gtags-select-mode-hook.
 ;; The usage of the hook is shown as follows.
-;;
-;; [Setting to use vi style scroll key]
-;;
-;; (add-hook 'gtags-mode-hook
-;;   '(lambda ()
-;;      (define-key gtags-mode-map "\C-f" 'scroll-up)
-;;      (define-key gtags-mode-map "\C-b" 'scroll-down)
-;; ))
-;;
 ;; [Setting to make 'Gtags select mode' easy to see]
 ;;
 (add-hook 'gtags-select-mode-hook
@@ -134,8 +127,6 @@
 	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include"
 	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include/c++"
 	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include-fixed"
-	;; "D:/MinGW/glew/include"
-	;; "d:/MinGW/freeglut/include"
 ))
 (require 'semantic-c nil 'noerror)
 (let ((include-dirs user-include-dirs))
@@ -178,6 +169,11 @@
 (autoload 'auto-complete-mode "auto-complete-config" nil)
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/plugins/auto-complete//ac-dict")
 (ac-config-default)
+(setq ac-ignore-case nil)
+(setq ac-auto-start 3)
+;; (defun my-ac-c-common-mode ()
+;;   (setq ac-sources '(ac-source-gtags ac-source-yasnippet)))
+;; (add-hook 'c-mode-common-hook 'my-ac-c-common-mode)
 ;; show the menu after 0.5 seconds
 ;;(setq ac-auto-show-menu 0.5)
 (define-key ac-completing-map "\M-/" 'ac-stop)
@@ -274,7 +270,9 @@
 (if (eq system-type 'windows-nt)
         (progn
           (setq exec-path (add-to-list 'exec-path "D:/home/bin/Git/bin"))
-          (setenv "PATH" (concat "D:\\home\\bin\\Git\\bin;" (getenv "PATH")))))
+          (setenv "PATH" (concat "D:\\home\\bin\\Git\\bin;" (getenv "PATH")))
+	  (setenv "GTAGSLIBPATH" 
+		  (concat "D:\\MinGW\\x86_64-w64-mingw32\\include\\GL;" (getenv "GTAGSLIBPATH")))))
 ;; setup for rect-mark
 (global-set-key (kbd "C-x r C-SPC") 'rm-set-mark)
 (global-set-key (kbd "C-x r C-x") 'rm-exchange-point-and-mark)
@@ -300,4 +298,21 @@
 ;; set up for helm
 (autoload 'helm-mode "helm-config" t)
 (global-set-key (kbd "C-c h") 'helm-mini)
+(require 'helm-gtags)
+
+(add-hook 'c-mode-common-hook (lambda () (helm-gtags-mode)))
+
+;; customize
+;;(setq helm-gtags-path-style 'relative)
+(setq helm-gtags-ignore-case t)
+;;(setq helm-gtags-read-only t)
+
+;; key bindings
+(add-hook 'helm-gtags-mode-hook
+          '(lambda ()
+              (local-set-key (kbd "M-t") 'helm-gtags-find-tag)
+              (local-set-key (kbd "M-r") 'helm-gtags-find-rtag)
+              (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
+              (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)
+              (local-set-key (kbd "C-c C-f") 'helm-gtags-pop-stack)))
 
