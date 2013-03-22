@@ -1,3 +1,16 @@
+;; setup for the load path
+(add-to-list 'load-path "~/.emacs.d/")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(add-to-list 'load-path "~/config/")
+(add-to-list 'load-path "~/.emacs.d/plugins/auto-complete")
+;; (add-to-list 'load-path "~/.emacs.d/plugins/xcscope")
+(add-to-list 'load-path
+	     "~/.emacs.d/plugins/yasnippet")
+(add-to-list 'load-path "~/.emacs.d/elpa/helm-20130124.943")
+(add-to-list 'load-path "~/.emacs.d/elpa/glsl-mode-20130209.13/glsl-mode")
+(add-to-list 'load-path  "~/.emacs.d/plugins/bm")
+
+(require 'cedet-buildin-config)
 ;; use utf-8 charset for html and yml files
 (modify-coding-system-alist 'file "\\.markdown\\'" 'utf-8-unix)
 (modify-coding-system-alist 'file "\\.md\\'" 'utf-8-unix)
@@ -13,7 +26,6 @@
 ;; start the emacs server to speed up the emacs
 (load "server")
 (unless (server-running-p) (server-start))
-
 ;; Opening Server Files Always in a New Frame
 (custom-set-variables
    '(server-done-hook (quote ((lambda nil (kill-buffer nil)) delete-frame)))
@@ -24,17 +36,7 @@
 			      (bury-buffer)      
 			      (switch-to-buffer-other-frame server-buf))))))
    )
-;; setup for the load path
-(add-to-list 'load-path "~/.emacs.d/")
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-(add-to-list 'load-path "~/config/")
-(add-to-list 'load-path "~/.emacs.d/plugins/auto-complete")
-;; (add-to-list 'load-path "~/.emacs.d/plugins/xcscope")
-(add-to-list 'load-path
-	     "~/.emacs.d/plugins/yasnippet")
-(add-to-list 'load-path "~/.emacs.d/plugins/cedet-1.1")
-(add-to-list 'load-path "D:/emacs-24.2/.emacs.d/elpa/helm-20130124.943")
-(add-to-list 'load-path "D:/emacs-24.2/.emacs.d/elpa/glsl-mode-20130209.13/glsl-mode")
+
 
 ;; setup for glsl-mode
 (autoload 'glsl-mode "glsl-mode" nil t)
@@ -63,98 +65,13 @@
      (setq hl-line-face 'underline)
      (hl-line-mode 1)
 ))
+
 ;; setup for the emacs-color-theme
 (load-theme 'zenburn t)
 ;;(add-to-list 'custom-theme-load-path 
 ;;	     "~/.emacs.d/plugins/emacs-color-theme-solarized")
 ;;(load-theme 'solarized-light t)
 
-;; setup for cedet
-(load-file "~/.emacs.d/plugins/cedet-1.1/common/cedet.el")
-;; Enable EDE (Project Management) features
-(global-ede-mode 1)
-;; Enable EDE for a pre-existing C++ project
-;; (ede-cpp-root-project "NAME" :file "~/myproject/Makefile")
-
-
-;; Enabling Semantic (code-parsing, smart completion) features
-;; Select one of the following:
-
-;; * This enables the database and idle reparse engines
-(semantic-load-enable-minimum-features)
-
-;; * This enables some tools useful for coding, such as summary mode,
-;;   imenu support, and the semantic navigator
-(semantic-load-enable-code-helpers)
-;; semantic-tag-folding
-(require 'semantic-tag-folding nil 'noerror)
-;; (autoload 'global-semantic-tag-folding-mode
-;;  "semantic-tag-folding" "loading semantic-tag-folding" t)
-(global-semantic-tag-folding-mode)
-;; key bindings
-(define-key semantic-tag-folding-mode-map 
-  (kbd "C-c , -") 'semantic-tag-folding-fold-block)
-(define-key semantic-tag-folding-mode-map 
-  (kbd "C-c , =") 'semantic-tag-folding-show-block)
-(define-key semantic-tag-folding-mode-map 
-  (kbd "C-_") 'semantic-tag-folding-fold-all)
-(define-key semantic-tag-folding-mode-map
-  (kbd "C-+") 'semantic-tag-folding-show-all)
-(global-set-key (kbd "C-?") 'global-semantic-tag-folding-mode)
-;; * This enables even more coding tools such as intellisense mode,
-;;   decoration mode, and stickyfunc mode (plus regular code helpers)
-;; (semantic-load-enable-gaudy-code-helpers)
-
-;; * This enables the use of Exuberant ctags if you have it installed.
-;;   If you use C++ templates or boost, you should NOT enable it.
-;; (semantic-load-enable-all-exuberent-ctags-support)
-;;   Or, use one of these two types of support.
-;;   Add support for new languages only via ctags.
-;; (semantic-load-enable-primary-exuberent-ctags-support)
-;;   Add support for using ctags as a backup parser.
-;; (semantic-load-enable-secondary-exuberent-ctags-support)
-
-;; Enable SRecode (Template management) minor-mode.
-;; a template system like yasnippet
-;; (global-srecode-minor-mode 1)
-
-(defconst user-include-dirs
-  (list ".." "../include" "../inc" "../common" "../public"
-        "../.." "../../include" "../../inc" "../../common" "../../public"))
-(defconst win32-include-dirs
-  (list "D:/MinGW/include"
-        "D:/MinGW/x86_64-w64-mingw32/include"
-	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include"
-	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include/c++"
-	"D:/MinGW/lib/gcc/x86_64-w64-mingw32/4.7.2/include-fixed"
-))
-(require 'semantic-c nil 'noerror)
-(let ((include-dirs user-include-dirs))
-  (when (eq system-type 'windows-nt)
-    (setq include-dirs (append include-dirs win32-include-dirs)))
-  (mapc (lambda (dir)
-          (semantic-add-system-include dir 'c++-mode)
-          (semantic-add-system-include dir 'c-mode))
-        include-dirs))
-(when (cedet-gnu-global-version-check t)
-  (semanticdb-enable-gnu-global-databases 'c-mode)
-  (semanticdb-enable-gnu-global-databases 'c++-mode))
-(setq-mode-local c-mode semanticdb-find-default-throttle
-                 '(project unloaded system recursive))
-;;sematic jump between the function call and function called
-(global-set-key [f8] 'semantic-ia-fast-jump)
-(global-set-key [S-f8]
-                (lambda ()
-                  (interactive)
-                  (if (ring-empty-p (oref semantic-mru-bookmark-ring ring))
-                      (error "Semantic Bookmark ring is currently empty"))
-                  (let* ((ring (oref semantic-mru-bookmark-ring ring))
-                         (alist (semantic-mrub-ring-to-assoc-list ring))
-                         (first (cdr (car alist))))
-                    (if (semantic-equivalent-tag-p (oref first tag)
-                                                   (semantic-current-tag))
-                        (setq first (cdr (car (cdr alist)))))
-                    (semantic-mrub-switch-tags first))))
 ;; setup for the package system
 (when (>= emacs-major-version 24)
   (require 'package)
@@ -170,21 +87,18 @@
 (add-to-list 'ac-dictionary-directories "~/.emacs.d/plugins/auto-complete//ac-dict")
 (ac-config-default)
 (setq ac-ignore-case nil)
-(setq ac-auto-start 3)
-;; (defun my-ac-c-common-mode ()
-;;   (setq ac-sources '(ac-source-gtags ac-source-yasnippet)))
-;; (add-hook 'c-mode-common-hook 'my-ac-c-common-mode)
+(setq ac-auto-start 4)
+;; (defun my-c-mode-cedet-hook ()
+;;   (add-to-list 'ac-sources 'ac-source-semantic-raw)
+;;  (add-to-list 'ac-sources 'ac-source-semantic))
+;;(add-hook 'c-mode-common-hook 'my-c-mode-cedet-hook)
 ;; show the menu after 0.5 seconds
 ;;(setq ac-auto-show-menu 0.5)
 (define-key ac-completing-map "\M-/" 'ac-stop)
 ;; fix the bug for [return] in autopair
 (define-key ac-completing-map [return] 'ac-complete)
-;;(define-key ac-completing-map [tab] 'ac-expand)
-;;(defun ac-common-setup ()
-;;  (setq ac-sources (append ac-sources '(ac-source-words-in-all-buffer))))
-;; (add-hook 'c-mode-common-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic)))
-;; (add-hook 'c-mode-common-hook (lambda () (add-to-list 'ac-sources 'ac-source-semantic-raw)))
-(add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
+
+
 ;; Complete member name by C-c . for C++ mode.
 (add-hook 'c-mode-common-hook
           (lambda ()
@@ -193,6 +107,7 @@
 
 ;; enable AC-mode in text mode
 (add-to-list 'ac-modes 'text-mode)
+(add-to-list 'ac-modes 'glsl-mode)
 (add-to-list 'ac-modes 'makefile-gmake-mode)
 ;; setup for yasnippet
 (require 'yasnippet)
@@ -202,8 +117,7 @@
 (yas-reload-all)
 ;; (yas-global-mode t)
 ;; setup for bm
-(add-to-list 'load-path 
-	     "~/.emacs.d/plugins/bm")
+
 (require 'bm)
 (global-set-key (kbd "C-.") 'bm-toggle)
 (global-set-key (kbd "<f11>")   'bm-next)
@@ -229,7 +143,7 @@
       '((sequence "TODO" "DOING" "HANGUP" "|" "DONE" "CANCEL")))
 (setq org-todo-keywords
       '((sequence "TODO(t)" "DOING(i!)" "HANGUP(h!)" "|" "DONE(d!)" "CANCEL(c!)")))
-
+(add-hook 'org-mode-hook (lambda () (setq truncate-lines nil)))
 
 ;; setting up for auto pair
 (require 'autopair)
@@ -271,6 +185,7 @@
         (progn
           (setq exec-path (add-to-list 'exec-path "D:/home/bin/Git/bin"))
           (setenv "PATH" (concat "D:\\home\\bin\\Git\\bin;" (getenv "PATH")))
+	  (setenv "PATH" (concat "D:\\home\\git\\msysgit\\bin;" (getenv "PATH")))
 	  (setenv "GTAGSLIBPATH" 
 		  (concat "D:\\MinGW\\x86_64-w64-mingw32\\include\\GL;" (getenv "GTAGSLIBPATH")))))
 ;; setup for rect-mark
@@ -299,8 +214,7 @@
 (autoload 'helm-mode "helm-config" t)
 (global-set-key (kbd "C-c h") 'helm-mini)
 (require 'helm-gtags)
-
-(add-hook 'c-mode-common-hook (lambda () (helm-gtags-mode)))
+;; (add-hook 'c-mode-common-hook (lambda () (helm-gtags-mode)))
 
 ;; customize
 ;;(setq helm-gtags-path-style 'relative)
@@ -315,4 +229,3 @@
               (local-set-key (kbd "M-s") 'helm-gtags-find-symbol)
               (local-set-key (kbd "C-t") 'helm-gtags-pop-stack)
               (local-set-key (kbd "C-c C-f") 'helm-gtags-pop-stack)))
-
